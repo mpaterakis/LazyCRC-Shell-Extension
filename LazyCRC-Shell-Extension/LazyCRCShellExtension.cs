@@ -37,7 +37,7 @@ namespace MultiItemShellExtension
                     "MD5 checksum (*.md5)|*.md5|" +
                     "SHA256 checksum (*.sha256)|*.sha256|" +
                     "SHA512 checksum (*.sha512)|*.sha512|" +
-                    "Blake3 checksum (*.blake3)|*.blake3";
+                    "Blake3 checksum (*.b3sum)|*.b3sum";
                 dlg.FilterIndex = 1;
                 dlg.AddExtension = true;
 
