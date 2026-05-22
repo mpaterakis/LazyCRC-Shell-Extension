@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
+    Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BE612C75-D024-4142-9A22-CC80253D1856}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Lazy_CRC_Shell_Extension</RootNamespace>
+    <AssemblyName>lazy_crc_shell</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>lazy_crc_shell_extension_signkey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference
+      Include="SharpShell, Version=2.7.2.0, Culture=neutral, PublicKeyToken=f14dc899472fe6fb, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpShell.2.7.2\lib\net40-client\SharpShell.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="LazyCRCShellExtension.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lazy_crc_shell_extension_signkey.snk" />
+    <None Include="packages.config" />
+    <None Include="register_lazy_crc_shell.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="unregister_lazy_crc_shell.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import
+    Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.45\build\ILRepack.Lib.MSBuild.Task.targets"
+    Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.45\build\ILRepack.Lib.MSBuild.Task.targets')" />
+  <Target Name="ILRepack" AfterTargets="Build">
+    <ILRepack
+      OutputFile="$(OutputPath)$(AssemblyName)_merged.dll"
+      InputAssemblies="$(OutputPath)$(AssemblyName).dll;..\packages\SharpShell.2.7.2\lib\net40-client\SharpShell.dll"
+      LibraryPath="$(OutputPath);..\packages\SharpShell.2.7.2\lib\net40-client\"
+      Internalize="true"
+      TargetKind="Dll"
+      KeyFile="lazy_crc_shell_extension_signkey.snk"
+    />
+    <Delete Files="$(OutputPath)$(AssemblyName).dll" />
+    <Move
+      SourceFiles="$(OutputPath)$(AssemblyName)_merged.dll"
+      DestinationFiles="$(OutputPath)$(AssemblyName).dll"
+    />
+  </Target>
+  <Target Name="ZipOutput" AfterTargets="ILRepack">
+    <ItemGroup>
+      <ZipFiles Include="$(OutputPath)lazy_crc_shell.dll" />
+      <!-- <ZipFiles Include="$(OutputPath)SharpShell.dll" /> -->
+      <ZipFiles Include="$(OutputPath)unregister_lazy_crc_shell.bat" />
+      <ZipFiles Include="$(OutputPath)register_lazy_crc_shell.bat" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ZipFiles)" DestinationFolder="$(OutputPath)zip_temp\" />
+    <ZipDirectory SourceDirectory="$(OutputPath)zip_temp"
+      DestinationFile="$(OutputPath)lazy_crc_shell.zip" Overwrite="true" />
+    <RemoveDir Directories="$(OutputPath)zip_temp" />
+  </Target>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use
+        NuGet Package Restore to download them. For more information, see
+        http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error
+      Condition="!Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.45\build\ILRepack.Lib.MSBuild.Task.targets')"
+      Text="$([System.String]::Format('$(ErrorText)', '..\packages\ILRepack.Lib.MSBuild.Task.2.0.45\build\ILRepack.Lib.MSBuild.Task.targets'))" />
+  </Target>
+</Project>
