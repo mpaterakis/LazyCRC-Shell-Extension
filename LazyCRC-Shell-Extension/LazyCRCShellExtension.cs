@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace MultiItemShellExtension
 {
+    // Create checksum file
     [ComVisible(true)]
     [Guid("00619cf0-6860-4b62-ba68-7952483a745f")]
     [COMServerAssociation(AssociationType.AllFilesAndFolders)]
@@ -55,12 +56,6 @@ namespace MultiItemShellExtension
                     dlg.FileName = new DirectoryInfo(Path.GetDirectoryName(paths[0])).Name;
                 }
 
-                // Get lazy_crc.exe's path
-                string exePath = Path.Combine(
-                    Path.GetDirectoryName(typeof(LazyCrcContextMenu).Assembly.Location),
-                    "lazy_crc.exe"
-                );
-
                 // Exit gracefully if user closed the dialog
                 if (dlg.ShowDialog() != DialogResult.OK)
                     return;
@@ -90,14 +85,62 @@ namespace MultiItemShellExtension
                 }
 
                 // Run LazyCRC
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = exePath,
-                    Arguments = args.ToString(),
-                    UseShellExecute = false,
-                    CreateNoWindow = false
-                });
+                LazyCrcHelpers.RunLazyCRC(args.ToString());
             }
+        }
+    }
+
+    // Verify checksum files (sfv, md5, sha256, sha512, b3sum)
+    [ComVisible(true)]
+    [Guid("d4865576-e2ca-4715-9e9f-314d4ece7397")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".sfv")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".md5")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".sha256")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".sha512")]
+    [COMServerAssociation(AssociationType.ClassOfExtension, ".b3sum")]
+    public class LazyCrcCheckMenu : SharpContextMenu
+    {
+        // Show "Verify Checksum" when exactly one checksum file is selected
+        protected override bool CanShowMenu() => SelectedItemPaths.Count() == 1;
+
+        protected override ContextMenuStrip CreateMenu()
+        {
+            var menu = new ContextMenuStrip();
+            var item = new ToolStripMenuItem("Verify Checksum");
+            item.Click += (s, e) => RunCheck();
+            menu.Items.Add(item);
+            return menu;
+        }
+
+        private void RunCheck()
+        {
+            string checksumFile = SelectedItemPaths.First();
+            LazyCrcHelpers.RunLazyCRC($"--check \"{checksumFile}\"");
+        }
+    }
+
+
+    // Internal helper functions
+    internal static class LazyCrcHelpers
+    {
+        // Get lazy_crc.exe's path
+        internal static string GetExePath()
+        {
+            return Path.Combine(
+                Path.GetDirectoryName(typeof(LazyCrcContextMenu).Assembly.Location),
+                "lazy_crc.exe");
+        }
+
+        // Run LazyCRC with arguments
+        internal static void RunLazyCRC(string arguments)
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = GetExePath(),
+                Arguments = arguments,
+                UseShellExecute = false,
+                CreateNoWindow = false
+            });
         }
     }
 }
