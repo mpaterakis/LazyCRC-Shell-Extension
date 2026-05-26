@@ -12,6 +12,8 @@ Right-click any file or folder and select **Create Checksum File**. A save dialo
 - SHA512 (`.sha512`)
 - Blake3 (`.blake3`)
 
+To verify a checksum, right-click any single file of the same format and select **Verify Checksum**.
+
 ## Installation
 
 1. Get the latest `lazy_crc_shell.zip` [from the releases section](https://github.com/mpaterakis/LazyCRC-Shell-Extension/releases)
